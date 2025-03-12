@@ -32,6 +32,24 @@ The import window is accessible in the **PCB Editor** -> **Tools** -> **External
 
 The libraries to import must be located in the folder specified as **Folder of the library** to import. After pressing Start, the libraries will be imported into the specified folder (**Library save location**). Provided that the paths have been [added correctly in KiCad](#including-the-imported-libraries-in-kicad), the parts can be used immediately in KiCad. If the libraries have not been imported correctly, a warning will indicate this.
 
+### Import Methods
+
+There are three ways to import components:
+
+1. **Manual Import**: Enter a single part number in the text field and click "Manual Import" or press Enter.
+2. **Batch Import**: Enter multiple part numbers separated by commas in the batch import text area and click "Import Batch". This allows you to import multiple components in one go.
+3. **Automatic Import**: Enable "auto background import" to automatically import any new library files that appear in the specified import folder.
+
+### Deutsche Übersetzung / German Translation
+
+#### Importmethoden
+
+Es gibt drei Möglichkeiten, Komponenten zu importieren:
+
+1. **Manueller Import**: Geben Sie eine einzelne Teilenummer in das Textfeld ein und klicken Sie auf "Manual Import" oder drücken Sie Enter.
+2. **Batch-Import**: Geben Sie mehrere, durch Kommas getrennte Teilenummern in den Batch-Import-Textbereich ein und klicken Sie auf "Import Batch". Dies ermöglicht es Ihnen, mehrere Komponenten auf einmal zu importieren.
+3. **Automatischer Import**: Aktivieren Sie "auto background import", um automatisch alle neuen Bibliotheksdateien zu importieren, die im angegebenen Importordner erscheinen.
+
 ## Including the imported libraries in KiCad
 To use the imported libraries from the plugin, you will need to add a couple entries to KiCad's path first to see them. You can either let the plugin make the changes automatically (auto KiCad setting) or set the following changes manually in KiCad.
 
@@ -60,11 +78,11 @@ To use the imported libraries from the plugin, you will need to add a couple ent
 
 ## Migrate the libraries
 
-It is strongly recommended to migrate the libraries. If you see the “migrate the libraries” button, you have been using the plugin for some time. From now on, only the latest library format will be supported. If this does not work, the old format will continue to work.
+It is strongly recommended to migrate the libraries. If you see the "migrate the libraries" button, you have been using the plugin for some time. From now on, only the latest library format will be supported. If this does not work, the old format will continue to work.
 
 ![GUI_migrate](doc/2024-08-17_GUI_migrate.png)
 
-By pressing “migrate the libraries” the following window appears. Depending on how many libraries you use, fewer libraries may be displayed. Now you can start the conversion process. Important: The conversion only works completely from KiCad 8.0.4. If possible, use the latest stable [![GitHub Release](https://img.shields.io/badge/KiCad-V8-blue.svg)](https://www.kicad.org/download/) version. 
+By pressing "migrate the libraries" the following window appears. Depending on how many libraries you use, fewer libraries may be displayed. Now you can start the conversion process. Important: The conversion only works completely from KiCad 8.0.4. If possible, use the latest stable [![GitHub Release](https://img.shields.io/badge/KiCad-V8-blue.svg)](https://www.kicad.org/download/) version. 
 
 ![Migration](doc/2024-08-17_Migration.png)
 

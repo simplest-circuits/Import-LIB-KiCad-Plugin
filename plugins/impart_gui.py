@@ -52,7 +52,7 @@ class impartGUI ( wx.Dialog ):
         self.m_buttonImportManual = wx.Button( self, wx.ID_ANY, u"Manual Import", wx.DefaultPosition, wx.DefaultSize, 0 )
         fgSizer2.Add( self.m_buttonImportManual, 0, wx.ALL, 5 )
 
-        m_choice1Choices = [ u"EeasyEDA /  LCSC Part#" ]
+        m_choice1Choices = [ u"EasyEDA /  LCSC Part#" ]
         self.m_choice1 = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice1Choices, 0 )
         self.m_choice1.SetSelection( 0 )
         fgSizer2.Add( self.m_choice1, 0, wx.ALL|wx.EXPAND, 5 )
@@ -62,8 +62,28 @@ class impartGUI ( wx.Dialog ):
 
         fgSizer2.Add( self.m_textCtrl2, 0, wx.EXPAND|wx.ALL, 5 )
 
-
         bSizer.Add( fgSizer2, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        # Add batch import section
+        self.m_staticline_batch = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+        self.m_staticline_batch.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
+        self.m_staticline_batch.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_GRAYTEXT ) )
+        bSizer.Add( self.m_staticline_batch, 0, wx.EXPAND |wx.ALL, 5 )
+
+        bSizerBatch = wx.BoxSizer(wx.VERTICAL)
+        
+        self.m_staticText_batch = wx.StaticText( self, wx.ID_ANY, u"Batch Import (comma-separated part numbers):", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText_batch.Wrap( -1 )
+        bSizerBatch.Add( self.m_staticText_batch, 0, wx.ALL, 5 )
+
+        self.m_textCtrlBatch = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+        self.m_textCtrlBatch.SetMinSize( wx.Size( -1, 60 ) )
+        bSizerBatch.Add( self.m_textCtrlBatch, 0, wx.ALL|wx.EXPAND, 5 )
+
+        self.m_buttonBatchImport = wx.Button( self, wx.ID_ANY, u"Import Batch", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizerBatch.Add( self.m_buttonBatchImport, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
+
+        bSizer.Add( bSizerBatch, 0, wx.EXPAND, 5 )
 
         self.m_staticline12 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
         self.m_staticline12.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
@@ -152,8 +172,9 @@ class impartGUI ( wx.Dialog ):
         self.Bind( wx.EVT_CLOSE, self.on_close )
         self.m_button_migrate.Bind( wx.EVT_BUTTON, self.migrate_libs )
         self.m_button.Bind( wx.EVT_BUTTON, self.BottonClick )
-        self.m_buttonImportManual.Bind( wx.EVT_BUTTON, self.ButtomManualImport )
-        self.m_textCtrl2.Bind( wx.EVT_TEXT_ENTER, self.ButtomManualImport )
+        self.m_buttonImportManual.Bind( wx.EVT_BUTTON, self.ButtonManualImport )
+        self.m_buttonBatchImport.Bind( wx.EVT_BUTTON, self.ButtonBatchImport )
+        self.m_textCtrl2.Bind( wx.EVT_TEXT_ENTER, self.ButtonManualImport )
         self.m_dirPicker_sourcepath.Bind( wx.EVT_DIRPICKER_CHANGED, self.DirChange )
         self.m_checkBoxLocaLib.Bind(wx.EVT_CHECKBOX, self.m_checkBoxLocaLibOnCheckBox)
         self.m_dirPicker_librarypath.Bind( wx.EVT_DIRPICKER_CHANGED, self.DirChange )
@@ -172,7 +193,10 @@ class impartGUI ( wx.Dialog ):
     def BottonClick( self, event ):
         event.Skip()
 
-    def ButtomManualImport( self, event ):
+    def ButtonManualImport( self, event ):
+        event.Skip()
+
+    def ButtonBatchImport( self, event ):
         event.Skip()
 
     def DirChange( self, event ):

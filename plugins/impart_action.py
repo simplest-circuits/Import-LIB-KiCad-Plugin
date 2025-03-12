@@ -250,144 +250,109 @@ class impart_frontend(impartGUI):
         self.m_dirPicker_sourcepath.SetPath(backend_h.config.get_SRC_PATH())
         self.m_dirPicker_librarypath.SetPath(backend_h.config.get_DEST_PATH())
 
-        self.m_autoImport.SetValue(backend_h.autoImport)
-        self.m_overwrite.SetValue(backend_h.overwriteImport)
-        self.m_check_autoLib.SetValue(backend_h.autoLib)
-        self.m_check_import_all.SetValue(backend_h.import_old_format)
-        self.m_checkBoxLocaLib.SetValue(backend_h.localLib)
+        self.SetTitle("Import Libraries")
 
-        if backend_h.runThread:
-            self.m_button.Label = "automatic import / press to stop"
-        else:
-            self.m_button.Label = "Start"
+        self.m_text.SetValue(backend_h.print_buffer)
+        self.thread = None
 
         EVT_UPDATE(self, self.updateDisplay)
-        self.Thread = PluginThread(self)  # only for text output
 
-        self.test_migrate_possible()
+        if self.test_migrate_possible():
+            self.m_button_migrate.Show()
+            self.m_staticline11.Show()
+            self.Layout()
 
     def updateDisplay(self, status):
         self.m_text.SetValue(status.data)
-        self.m_text.SetInsertionPointEnd()
+        self.m_text.ShowPosition(self.m_text.GetLastPosition())
 
     def m_checkBoxLocaLibOnCheckBox(self, event):
-        backend_h.localLib = self.m_checkBoxLocaLib.IsChecked()
+        backend_h.localLib = self.m_checkBoxLocaLib.GetValue()
         self.m_dirPicker_librarypath.Enable(not backend_h.localLib)
-        event.Skip()
 
     def on_close(self, event):
-        if backend_h.runThread:
-            dlg = wx.MessageDialog(
-                None,
-                "The automatic import process continues in the background. "
-                + "If this is not desired, it must be stopped.\n"
-                + "As soon as the PCB Editor window is closed, the import process also ends.",
-                "WARNING: impart background process",
-                wx.KILL_OK | wx.ICON_WARNING,
-            )
-            if dlg.ShowModal() != wx.ID_OK:
-                return
-
-        backend_h.autoImport = self.m_autoImport.IsChecked()
-        backend_h.overwriteImport = self.m_overwrite.IsChecked()
-        backend_h.autoLib = self.m_check_autoLib.IsChecked()
-        backend_h.import_old_format = self.m_check_import_all.IsChecked()
-        backend_h.localLib = self.m_checkBoxLocaLib.IsChecked()
-        # backend_h.runThread = False
-        self.Thread.stopThread = True  # only for text output
-        event.Skip()
-
-    def BottonClick(self, event):
-        if backend_h.localLib:
-            backend_h.importer.set_DEST_PATH(self.KiCad_Project)
-            KICAD_3RD_PARTY_LINK = "${KIPRJMOD}"
-        else:
-            backend_h.importer.set_DEST_PATH(backend_h.config.get_DEST_PATH())
-            KICAD_3RD_PARTY_LINK = "${KICAD_3RD_PARTY}"
-
-        backend_h.importer.KICAD_3RD_PARTY_LINK = KICAD_3RD_PARTY_LINK
-
-        backend_h.autoImport = self.m_autoImport.IsChecked()
-
-        tmp = self.m_overwrite.IsChecked()
-        if tmp and not tmp == backend_h.overwriteImport:
-            backend_h.folderhandler.filelist = []
-        backend_h.overwriteImport = self.m_overwrite.IsChecked()
-
-        backend_h.autoLib = self.m_check_autoLib.IsChecked()
-        backend_h.import_old_format = self.m_check_import_all.IsChecked()
-
-        if backend_h.runThread:
-            backend_h.runThread = False
-            self.m_button.Label = "Start"
-            return
-
+        if self.thread is not None:
+            self.thread.stopThread = True
+            self.thread.join()
         backend_h.runThread = False
-        backend_h.__find_new_file__()
-        self.m_button.Label = "Start"
-
-        if backend_h.autoImport:
-            backend_h.runThread = True
-            self.m_button.Label = "automatic import / press to stop"
-            x = Thread(target=backend_h.__find_new_file__, args=[])
-            x.start()
-
-        add_if_possible = self.m_check_autoLib.IsChecked()
-        msg = checkImport(add_if_possible)
-        if msg:
-            msg += "\n\nMore information can be found in the README for the integration into KiCad.\n"
-            msg += "github.com/Steffen-W/Import-LIB-KiCad-Plugin"
-            msg += "\nSome configurations require a KiCad restart to be detected correctly."
-
-            dlg = wx.MessageDialog(None, msg, "WARNING", wx.KILL_OK | wx.ICON_WARNING)
-
-            if dlg.ShowModal() != wx.ID_OK:
-                return
-
-            backend_h.print2buffer("\n##############################\n")
-            backend_h.print2buffer(msg)
-            backend_h.print2buffer("\n##############################\n")
-        event.Skip()
-
-    def DirChange(self, event):
         backend_h.config.set_SRC_PATH(self.m_dirPicker_sourcepath.GetPath())
         backend_h.config.set_DEST_PATH(self.m_dirPicker_librarypath.GetPath())
-        backend_h.folderhandler.filelist = []
-        self.test_migrate_possible()
-        event.Skip()
+        self.Destroy()
 
-    def ButtomManualImport(self, event):
-        try:
-            from .impart_easyeda import easyeda2kicad_wrapper
+    def BottonClick(self, event):
+        if not backend_h.runThread:
+            backend_h.runThread = True
+            backend_h.autoImport = self.m_autoImport.GetValue()
+            backend_h.overwriteImport = self.m_overwrite.GetValue()
+            backend_h.import_old_format = self.m_check_import_all.GetValue()
+            backend_h.localLib = self.m_checkBoxLocaLib.GetValue()
+            backend_h.autoLib = self.m_check_autoLib.GetValue()
 
             if backend_h.localLib:
-                path_variable = "${KIPRJMOD}"
-                base_folder = self.KiCad_Project
+                backend_h.config.set_DEST_PATH(self.KiCad_Project)
             else:
-                path_variable = "${KICAD_3RD_PARTY}"
-                base_folder = backend_h.config.get_DEST_PATH()
+                backend_h.config.set_DEST_PATH(self.m_dirPicker_librarypath.GetPath())
 
-            component_id = self.m_textCtrl2.GetValue().strip()  # example: "C2040"
-            overwrite = self.m_overwrite.IsChecked()
+            if backend_h.autoImport:
+                self.thread = PluginThread(self)
+                self.m_button.SetLabel("Stop")
+            else:
+                backend_h.__find_new_file__()
+                backend_h.runThread = False
+                self.m_text.SetValue(backend_h.print_buffer)
+                self.m_text.ShowPosition(self.m_text.GetLastPosition())
+        else:
+            backend_h.runThread = False
+            self.m_button.SetLabel("Start")
+
+    def DirChange(self, event):
+        backend_h.folderhandler = filehandler(self.m_dirPicker_sourcepath.GetPath())
+
+    def ButtonManualImport(self, event):
+        partnumber = self.m_textCtrl2.GetValue()
+        if partnumber:
+            try:
+                (res,) = backend_h.importer.import_all(
+                    partnumber,
+                    overwrite_if_exists=self.m_overwrite.GetValue(),
+                    import_old_format=self.m_check_import_all.GetValue(),
+                )
+                backend_h.print2buffer(res)
+            except AssertionError as e:
+                backend_h.print2buffer(e)
+            except Exception as e:
+                backend_h.print2buffer(f"Error: {e}")
+                backend_h.print2buffer("Python version " + sys.version)
+                print(traceback.format_exc())
             backend_h.print2buffer("")
-            backend_h.print2buffer(
-                "Try to import EeasyEDA /  LCSC Part# : " + component_id
-            )
-            easyeda_import = easyeda2kicad_wrapper()
-            easyeda_import.print = backend_h.print2buffer
-            easyeda_import.full_import(
-                component_id, base_folder, overwrite, lib_var=path_variable
-            )
-            event.Skip()
-        except Exception as e:
-            backend_h.print2buffer(f"Error: {e}")
-            backend_h.print2buffer("Python version " + sys.version)
-            print(traceback.format_exc())
+            self.m_text.SetValue(backend_h.print_buffer)
+            self.m_text.ShowPosition(self.m_text.GetLastPosition())
 
-    def get_old_libfiles(self):
-        libpath = self.m_dirPicker_librarypath.GetPath()
-        libs = ["Octopart", "Samacsys", "UltraLibrarian", "Snapeda", "EasyEDA"]
-        return find_old_lib_files(folder_path=libpath, libs=libs)
+    def ButtonBatchImport(self, event):
+        batch_text = self.m_textCtrlBatch.GetValue()
+        if batch_text:
+            # Split by commas and clean up whitespace
+            partnumbers = [pn.strip() for pn in batch_text.split(',') if pn.strip()]
+            
+            for partnumber in partnumbers:
+                try:
+                    (res,) = backend_h.importer.import_all(
+                        partnumber,
+                        overwrite_if_exists=self.m_overwrite.GetValue(),
+                        import_old_format=self.m_check_import_all.GetValue(),
+                    )
+                    backend_h.print2buffer(f"Importing {partnumber}:")
+                    backend_h.print2buffer(res)
+                except AssertionError as e:
+                    backend_h.print2buffer(f"Error importing {partnumber}: {e}")
+                except Exception as e:
+                    backend_h.print2buffer(f"Error importing {partnumber}: {e}")
+                    backend_h.print2buffer("Python version " + sys.version)
+                    print(traceback.format_exc())
+                backend_h.print2buffer("")
+            
+            self.m_text.SetValue(backend_h.print_buffer)
+            self.m_text.ShowPosition(self.m_text.GetLastPosition())
 
     def test_migrate_possible(self):
         libs2migrate = self.get_old_libfiles()
@@ -395,8 +360,15 @@ class impart_frontend(impartGUI):
 
         if len(conv):
             self.m_button_migrate.Show()
+            return True
         else:
             self.m_button_migrate.Hide()
+            return False
+
+    def get_old_libfiles(self):
+        libpath = self.m_dirPicker_librarypath.GetPath()
+        libs = ["Octopart", "Samacsys", "UltraLibrarian", "Snapeda", "EasyEDA"]
+        return find_old_lib_files(folder_path=libpath, libs=libs)
 
     def migrate_libs(self, event):
         libs2migrate = self.get_old_libfiles()
